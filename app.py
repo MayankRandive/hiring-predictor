@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 from xgboost import plot_importance
@@ -25,7 +24,7 @@ experience_years = st.number_input("Years of Experience", 0, 50, 1)
 education_level = st.selectbox("Education Level", ["High School", "Bachelor", "Master", "PhD"])
 
 # ------------------------
-# Default values for other features
+# Default values
 # ------------------------
 default_values = {
     'age': 25,
@@ -45,13 +44,13 @@ default_values = {
 }
 
 # ------------------------
-# One-hot encode categorical features
+# Encoding
 # ------------------------
 education_level_Masters = 1 if education_level == "Master" else 0
 education_level_PhD = 1 if education_level == "PhD" else 0
 
 # ------------------------
-# Build candidate DataFrame
+# DataFrame
 # ------------------------
 candidate_df = pd.DataFrame({
     'age': [default_values['age']],
@@ -75,11 +74,11 @@ candidate_df = pd.DataFrame({
 })
 
 # ------------------------
-# Predict
+# Prediction
 # ------------------------
 if st.button("Predict"):
     prob = model.predict_proba(candidate_df)[:, 1][0]
-    threshold = 0.5  # your tuned threshold
+    threshold = 0.5
     prediction = "Hired" if prob > threshold else "Not Hired"
 
     st.subheader("Prediction Results")
@@ -87,11 +86,10 @@ if st.button("Predict"):
     st.write(f"Confidence: **{prob:.2f}**")
 
     # ------------------------
-    # Feature importance
+    # Feature Importance
     # ------------------------
-    
-st.subheader("Top Feature Importance")
-fig, ax = plt.subplots(figsize=(8, 5))  # width x height
-plot_importance(model, ax=ax, max_num_features=10, show_values=False)
-ax.set_title("Top 10 Features by Importance")
-st.pyplot(fig)
+    st.subheader("Top Feature Importance")
+    fig, ax = plt.subplots(figsize=(8, 5))
+    plot_importance(model, ax=ax, max_num_features=10, show_values=False)
+    ax.set_title("Top 10 Features by Importance")
+    st.pyplot(fig)
