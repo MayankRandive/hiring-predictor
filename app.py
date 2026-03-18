@@ -10,9 +10,17 @@ from xgboost import plot_importance
 with open('xgb_model.pkl', 'rb') as f:
     model = pickle.load(f)
 
-st.set_page_config(page_title="AI Resume Screening System", layout="wide")
-st.title("AI Resume Screening System")
-st.write("Predict whether a candidate should be Hired or Not Hired based on resume features.")
+st.set_page_config(page_title="AI Candidate Evaluation System", layout="wide")
+st.title("AI Candidate Evaluation System")
+st.write("Predict whether a candidate should be Hired or Not Hired based on skills, experience, and education.")
+st.markdown("""
+### AI Candidate Evaluation System
+This tool predicts hiring decisions based on:
+- Skills Score
+- Experience
+- Education Level
+Built using Machine Learning (XGBoost)
+""")
 
 # ------------------------
 # User Input
