@@ -27,43 +27,50 @@ st.title("🤖 AI Candidate Evaluation System")
 st.markdown("""
 Smart hiring assistant powered by Machine Learning.
 
-Evaluate candidates based on:
+Evaluate candidates based on multiple factors like:
+- Education
 - Skills
 - Experience
-- Education
+- Projects & Certifications
 """)
 
 # ------------------------
-# Sidebar Inputs
+# Sidebar Inputs (FULL)
 # ------------------------
 st.sidebar.header("📋 Candidate Details")
 
-skills_score = st.sidebar.slider("Skills Score", 0, 100, 50)
-experience_years = st.sidebar.number_input("Years of Experience", 0, 50, 1)
+age = st.sidebar.number_input("Age", 18, 60, 25)
+cgpa = st.sidebar.slider("CGPA", 0.0, 10.0, 8.0)
+
+internships = st.sidebar.number_input("Internships", 0, 10, 1)
+projects = st.sidebar.number_input("Projects", 0, 20, 3)
+programming_languages = st.sidebar.number_input("Programming Languages", 0, 10, 3)
+certifications = st.sidebar.number_input("Certifications", 0, 10, 2)
+
+experience_years = st.sidebar.number_input("Experience (Years)", 0, 50, 1)
+
+hackathons = st.sidebar.number_input("Hackathons", 0, 10, 1)
+research_papers = st.sidebar.number_input("Research Papers", 0, 10, 0)
+
+skills_score = st.sidebar.slider("Technical Skills Score", 0, 100, 50)
+soft_skills_score = st.sidebar.slider("Soft Skills Score", 0, 100, 70)
+
+resume_length_words = st.sidebar.number_input("Resume Length (Words)", 100, 2000, 800)
+
 education_level = st.sidebar.selectbox(
     "Education Level",
-    ["High School", "Bachelor", "Master", "PhD"]
+    ["Bachelor", "Master", "PhD"]
 )
 
-# ------------------------
-# Default Values
-# ------------------------
-default_values = {
-    'age': 25,
-    'cgpa': 8.5,
-    'internships': 1,
-    'projects': 3,
-    'programming_languages': 3,
-    'certifications': 2,
-    'hackathons': 1,
-    'research_papers': 0,
-    'soft_skills_score': 70,
-    'resume_length_words': 800,
-    'university_tier_Tier 2': 0,
-    'university_tier_Tier 3': 0,
-    'company_type_Mid-size': 0,
-    'company_type_Startup': 0
-}
+university_tier = st.sidebar.selectbox(
+    "University Tier",
+    ["Tier 1", "Tier 2", "Tier 3"]
+)
+
+company_type = st.sidebar.selectbox(
+    "Target Company Type",
+    ["Product-Based", "Mid-size", "Startup"]
+)
 
 # ------------------------
 # Encoding
@@ -71,28 +78,34 @@ default_values = {
 education_level_Masters = 1 if education_level == "Master" else 0
 education_level_PhD = 1 if education_level == "PhD" else 0
 
+university_tier_Tier_2 = 1 if university_tier == "Tier 2" else 0
+university_tier_Tier_3 = 1 if university_tier == "Tier 3" else 0
+
+company_type_Mid_size = 1 if company_type == "Mid-size" else 0
+company_type_Startup = 1 if company_type == "Startup" else 0
+
 # ------------------------
-# DataFrame
+# DataFrame (FULL INPUT)
 # ------------------------
 candidate_df = pd.DataFrame({
-    'age': [default_values['age']],
-    'cgpa': [default_values['cgpa']],
-    'internships': [default_values['internships']],
-    'projects': [default_values['projects']],
-    'programming_languages': [default_values['programming_languages']],
-    'certifications': [default_values['certifications']],
+    'age': [age],
+    'cgpa': [cgpa],
+    'internships': [internships],
+    'projects': [projects],
+    'programming_languages': [programming_languages],
+    'certifications': [certifications],
     'experience_years': [experience_years],
-    'hackathons': [default_values['hackathons']],
-    'research_papers': [default_values['research_papers']],
+    'hackathons': [hackathons],
+    'research_papers': [research_papers],
     'skills_score': [skills_score],
-    'soft_skills_score': [default_values['soft_skills_score']],
-    'resume_length_words': [default_values['resume_length_words']],
+    'soft_skills_score': [soft_skills_score],
+    'resume_length_words': [resume_length_words],
     'education_level_Masters': [education_level_Masters],
     'education_level_PhD': [education_level_PhD],
-    'university_tier_Tier 2': [default_values['university_tier_Tier 2']],
-    'university_tier_Tier 3': [default_values['university_tier_Tier 3']],
-    'company_type_Mid-size': [default_values['company_type_Mid-size']],
-    'company_type_Startup': [default_values['company_type_Startup']]
+    'university_tier_Tier 2': [university_tier_Tier_2],
+    'university_tier_Tier 3': [university_tier_Tier_3],
+    'company_type_Mid-size': [company_type_Mid_size],
+    'company_type_Startup': [company_type_Startup]
 })
 
 # ------------------------
@@ -102,24 +115,24 @@ col1, col2 = st.columns([1, 1])
 
 with col1:
     st.subheader("📊 Candidate Summary")
-    st.write(f"**Skills Score:** {skills_score}")
-    st.write(f"**Experience:** {experience_years} years")
-    st.write(f"**Education:** {education_level}")
+    st.write(candidate_df)
 
 with col2:
     st.subheader("🚀 Prediction")
 
     if st.button("Evaluate Candidate"):
         try:
-            # ✅ IMPORTANT PART (THIS IS WHAT YOU ASKED)
-            candidate_df = candidate_df[features]          # correct order
-            candidate_scaled = scaler.transform(candidate_df)  # scaling
+            # Ensure correct order
+            candidate_df = candidate_df[features]
+
+            # Scale
+            candidate_scaled = scaler.transform(candidate_df)
+
+            # Predict
             prob = model.predict_proba(candidate_scaled)[:, 1][0]
 
-            threshold = 0.5
-            prediction = "Hired" if prob > threshold else "Not Hired"
+            prediction = "Hired" if prob > 0.5 else "Not Hired"
 
-            # Result
             if prediction == "Hired":
                 st.success(f"✅ {prediction}")
             else:
