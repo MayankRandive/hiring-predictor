@@ -5,34 +5,48 @@ import matplotlib.pyplot as plt
 from xgboost import plot_importance
 
 # ------------------------
-# Load trained model
+# Load Model + Scaler + Features
 # ------------------------
-with open('xgb_model.pkl', 'rb') as f:
-    model = pickle.load(f)
+model = pickle.load(open("model.pkl", "rb"))
+scaler = pickle.load(open("scaler.pkl", "rb"))
+features = pickle.load(open("features.pkl", "rb"))
 
-st.set_page_config(page_title="AI Candidate Evaluation System", layout="wide")
-st.title("AI Candidate Evaluation System")
-st.write("Predict whether a candidate should be Hired or Not Hired based on skills, experience, and education.")
+# ------------------------
+# Page Config
+# ------------------------
+st.set_page_config(
+    page_title="AI Candidate Evaluation System",
+    page_icon="🤖",
+    layout="wide"
+)
+
+# ------------------------
+# Header
+# ------------------------
+st.title("🤖 AI Candidate Evaluation System")
 st.markdown("""
-### AI Candidate Evaluation System
-This tool predicts hiring decisions based on:
-- Skills Score
+Smart hiring assistant powered by Machine Learning.
+
+Evaluate candidates based on:
+- Skills
 - Experience
-- Education Level
-Built using Machine Learning (XGBoost)
+- Education
 """)
 
 # ------------------------
-# User Input
+# Sidebar Inputs
 # ------------------------
-st.header("Enter Candidate Details")
+st.sidebar.header("📋 Candidate Details")
 
-skills_score = st.slider("Skills Score", 0, 100, 50)
-experience_years = st.number_input("Years of Experience", 0, 50, 1)
-education_level = st.selectbox("Education Level", ["High School", "Bachelor", "Master", "PhD"])
+skills_score = st.sidebar.slider("Skills Score", 0, 100, 50)
+experience_years = st.sidebar.number_input("Years of Experience", 0, 50, 1)
+education_level = st.sidebar.selectbox(
+    "Education Level",
+    ["High School", "Bachelor", "Master", "PhD"]
+)
 
 # ------------------------
-# Default values
+# Default Values
 # ------------------------
 default_values = {
     'age': 25,
@@ -82,22 +96,48 @@ candidate_df = pd.DataFrame({
 })
 
 # ------------------------
-# Prediction
+# Layout
 # ------------------------
-if st.button("Predict"):
-    prob = model.predict_proba(candidate_df)[:, 1][0]
-    threshold = 0.5
-    prediction = "Hired" if prob > threshold else "Not Hired"
+col1, col2 = st.columns([1, 1])
 
-    st.subheader("Prediction Results")
-    st.write(f"Prediction: **{prediction}**")
-    st.write(f"Confidence: **{prob:.2f}**")
+with col1:
+    st.subheader("📊 Candidate Summary")
+    st.write(f"**Skills Score:** {skills_score}")
+    st.write(f"**Experience:** {experience_years} years")
+    st.write(f"**Education:** {education_level}")
 
-    # ------------------------
-    # Feature Importance
-    # ------------------------
-    st.subheader("Top Feature Importance")
-    fig, ax = plt.subplots(figsize=(8, 5))
-    plot_importance(model, ax=ax, max_num_features=10, show_values=False)
-    ax.set_title("Top 10 Features by Importance")
-    st.pyplot(fig)
+with col2:
+    st.subheader("🚀 Prediction")
+
+    if st.button("Evaluate Candidate"):
+        try:
+            # ✅ IMPORTANT PART (THIS IS WHAT YOU ASKED)
+            candidate_df = candidate_df[features]          # correct order
+            candidate_scaled = scaler.transform(candidate_df)  # scaling
+            prob = model.predict_proba(candidate_scaled)[:, 1][0]
+
+            threshold = 0.5
+            prediction = "Hired" if prob > threshold else "Not Hired"
+
+            # Result
+            if prediction == "Hired":
+                st.success(f"✅ {prediction}")
+            else:
+                st.error(f"❌ {prediction}")
+
+            st.write(f"Confidence Score: {prob:.2f}")
+            st.progress(float(prob))
+
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+# ------------------------
+# Feature Importance
+# ------------------------
+st.subheader("📌 Model Insights")
+
+fig, ax = plt.subplots(figsize=(10, 5))
+plot_importance(model, ax=ax, max_num_features=10, show_values=False)
+ax.set_title("Top Features")
+
+st.pyplot(fig)
